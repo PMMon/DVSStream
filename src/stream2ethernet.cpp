@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
 	uint32_t interval;
 	uint32_t buffer_size = 512;
 	const char* port = "3333";	// Port number
-	const char* IPAdress = NULL;	// IP Adress - if NULL, use own IP. Hugin: 172.16.222.30; SPIF: 172.16.223.2
+	const char* IPAdress = NULL;	// IP Adress - if NULL, use own IP.
 
 	int nr_packets = 0;
 	uint32_t max_packets;
@@ -50,10 +50,9 @@ int main(int argc, char *argv[]) {
 	auto davisHandler = dvsstream.connect2camera(id);
 	davisHandler = dvsstream.startdatastream(davisHandler);
 
-	while (nr_packets < max_packets) { //command!="q"
+	while (nr_packets < max_packets) {
 		dvsstream.sendpacket(davisHandler, false);
 		nr_packets += 1;
-		//std::getline(std::cin, command);
 	}
 
 	exitcode = dvsstream.stopdatastream(davisHandler);
