@@ -1,0 +1,5 @@
+/build
+/src/build
+/src/dist
+/src/DVSData.egg-info
+/src/setup_files.txt
