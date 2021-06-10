@@ -286,15 +286,10 @@ void DVSStream<cameratype>::sendpacket(cameratype davisHandle, bool include_time
     } while (packetContainer == nullptr);
 
 
-    printf("\nGot event container with %d packets (allocated).\n", packetContainer->size());
-
     for (auto &packet : *packetContainer) {
         if (packet == nullptr) {
-            printf("Packet is empty (not present).\n");
             continue; // Skip if nothing there.
         }
-
-        printf("Packet of type %d -> %d events, %d capacity.\n", packet->getEventType(), packet->getEventNumber(), packet->getEventCapacity());
 
 
         if (packet->getEventType() == POLARITY_EVENT) {
@@ -330,13 +325,6 @@ void DVSStream<cameratype>::sendpacket(cameratype davisHandle, bool include_time
                     }
                     else{
                         message[current_event] |= polarity_event.y & 0x7FFF; // Be aware that for machine-independance it should be: htons(polarity_event.y & 0x7FFF);
-                    }
-                    
-                    if (current_event == packet->getEventNumber()-1){
-                        //printf("Time: %d\n", evt.getTimestamp());
-                        printf("x: %d\n", polarity_event.x);
-                        printf("y: %d\n", polarity_event.y);
-                        printf("polarity: %d\n", polarity_event.polarity);
                     }
 
                     if (include_timestamp){
