@@ -2,6 +2,7 @@
 
 #include <libcaercpp/devices/davis.hpp>
 #include <libcaer/devices/davis.h>
+#include <libcaercpp/devices/dvxplorer.hpp>
 #include "dvs2udp.hpp"
 
 #include <atomic>
@@ -20,8 +21,9 @@
 #include <netdb.h>
 
 
-// Constructor - initialize socket 
-DVSStream::DVSStream(uint32_t interval, uint32_t bfsize, const char* port, const char* IP, struct addrinfo *point, const char* file){
+// Constructor - initialize socket
+template <class cameratype>
+DVSStream<cameratype>::DVSStream(uint32_t interval, uint32_t bfsize, const char* port, const char* IP, struct addrinfo *point, const char* file){
     struct addrinfo hints, *servinfo;
     int rv;
 
@@ -71,8 +73,12 @@ DVSStream::DVSStream(uint32_t interval, uint32_t bfsize, const char* port, const
     }
 }
 
+template class DVSStream<libcaer::devices::davis>;
+template class DVSStream<libcaer::devices::dvXplorer>;
+
 // Global Shutdown Handler
-void DVSStream::globalShutdownSignalHandler(int signal) {
+template <class cameratype>
+void DVSStream<cameratype>::globalShutdownSignalHandler(int signal) {
     static atomic_bool globalShutdown(false);
     // Simply set the running flag to false on SIGTERM and SIGINT (CTRL+C) for global shutdown.
     if (signal == SIGTERM || signal == SIGINT) {
@@ -81,7 +87,8 @@ void DVSStream::globalShutdownSignalHandler(int signal) {
 }
 
 // USB Shutdown Handler
-void DVSStream::usbShutdownHandler(void *ptr) {
+template <class cameratype>
+void DVSStream<cameratype>::usbShutdownHandler(void *ptr) {
     static atomic_bool globalShutdown(false);
 	(void) (ptr); // UNUSED.
 
@@ -90,7 +97,8 @@ void DVSStream::usbShutdownHandler(void *ptr) {
 
 
 // Open a DAVIS given a USB ID, and don't care about USB bus or SN restrictions.
-libcaer::devices::davis DVSStream::connect2camera(int ID){
+template <class cameratype>
+libcaer::devices::davis DVSStream<cameratype>::connect2davis(int ID){
 
     #if defined(_WIN32)
         if (signal(SIGTERM, &globalShutdownSignalHandler) == SIG_ERR) {
@@ -163,13 +171,6 @@ libcaer::devices::davis DVSStream::connect2camera(int ID){
 
     davisHandle.configSet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRSFBP, caerBiasCoarseFineGenerate(coarseFineBias));
 
-    // Set parsing intervall where container interval is in [10μs] unit
-    //davisHandle.configSet(CAER_HOST_CONFIG_PACKETS, CAER_HOST_CONFIG_PACKETS_MAX_CONTAINER_INTERVAL, container_interval);
-
-    // Set number of events per packet
-    davisHandle.configSet(CAER_HOST_CONFIG_PACKETS, CAER_HOST_CONFIG_PACKETS_MAX_CONTAINER_PACKET_SIZE, container_interval);
-
-
     // Let's verify they really changed!
     uint32_t prBias   = davisHandle.configGet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRBP);
     uint32_t prsfBias = davisHandle.configGet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRSFBP);
@@ -181,17 +182,75 @@ libcaer::devices::davis DVSStream::connect2camera(int ID){
     return davisHandle;
 }
 
+template <class cameratype>
+libcaer::devices::dvXplorer DVSStream<cameratype>::connect2dvx(int ID){
+    // Install signal handler for global shutdown.
+    #if defined(_WIN32)
+        if (signal(SIGTERM, &globalShutdownSignalHandler) == SIG_ERR) {
+            libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
+                "Failed to set signal handler for SIGTERM. Error: %d.", errno);
+            return (EXIT_FAILURE);
+        }
+
+        if (signal(SIGINT, &globalShutdownSignalHandler) == SIG_ERR) {
+            libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
+                "Failed to set signal handler for SIGINT. Error: %d.", errno);
+            return (EXIT_FAILURE);
+        }
+    #else
+        struct sigaction shutdownAction;
+
+        shutdownAction.sa_handler = &globalShutdownSignalHandler;
+        shutdownAction.sa_flags   = 0;
+        sigemptyset(&shutdownAction.sa_mask);
+        sigaddset(&shutdownAction.sa_mask, SIGTERM);
+        sigaddset(&shutdownAction.sa_mask, SIGINT);
+
+        if (sigaction(SIGTERM, &shutdownAction, NULL) == -1) {
+            libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
+                "Failed to set signal handler for SIGTERM. Error: %d.", errno);
+            return (EXIT_FAILURE);
+        }
+
+        if (sigaction(SIGINT, &shutdownAction, NULL) == -1) {
+            libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
+                "Failed to set signal handler for SIGINT. Error: %d.", errno);
+            return (EXIT_FAILURE);
+        }
+    #endif
+
+	// Open a DVS, give it a device ID of 1, and don't care about USB bus or SN restrictions.
+	auto handle = libcaer::devices::dvXplorer(ID);
+
+	// Let's take a look at the information we have on the device.
+	auto info = handle.infoGet();
+
+	printf("%s --- ID: %d, DVS X: %d, DVS Y: %d, Firmware: %d, Logic: %d.\n", info.deviceString, info.deviceID, info.dvsSizeX, info.dvsSizeY, info.firmwareVersion, info.logicVersion);
+
+	// Send the default configuration before using the device.
+	// No configuration is sent automatically!
+	handle.sendDefaultConfig();
+
+    return handle;
+}
 
 // Start getting some data from the device. We just loop in blocking mode,
 // no notification needed regarding new events. The shutdown notification, for example if
 // the device is disconnected, should be listened to.
-libcaer::devices::davis DVSStream::startdatastream(libcaer::devices::davis davisHandle){
+template <class cameratype>
+cameratype DVSStream<cameratype>::startdatastream(cameratype davisHandle){
+
+    // Set parsing intervall where container interval is in [10μs] unit
+    //davisHandle.configSet(CAER_HOST_CONFIG_PACKETS, CAER_HOST_CONFIG_PACKETS_MAX_CONTAINER_INTERVAL, container_interval);
+
+    // Set number of events per packet
+    davisHandle.configSet(CAER_HOST_CONFIG_PACKETS, CAER_HOST_CONFIG_PACKETS_MAX_CONTAINER_PACKET_SIZE, container_interval);
 
     // Configs about buffer
     davisHandle.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BUFFER_SIZE, buffer_size);
 
     uint32_t BFSize   = davisHandle.configGet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BUFFER_SIZE);
-    printf("Buffer size: %d", BFSize);
+    printf("Buffer size: %d\n", BFSize);
 
     // Start data stream
     davisHandle.dataStart(nullptr, nullptr, nullptr, &DVSStream::usbShutdownHandler, nullptr);
@@ -204,7 +263,8 @@ return davisHandle;
 
 
 // Process a packet of events and send it using UDP over the socket
-void DVSStream::sendpacket(libcaer::devices::davis davisHandle, bool include_timestamp){
+template <class cameratype>
+void DVSStream<cameratype>::sendpacket(cameratype davisHandle, bool include_timestamp){
     std::unique_ptr<libcaer::events::EventPacketContainer> packetContainer = nullptr;
     int numbytes;
     int event_size; 
@@ -226,15 +286,15 @@ void DVSStream::sendpacket(libcaer::devices::davis davisHandle, bool include_tim
     } while (packetContainer == nullptr);
 
 
-    printf("\nGot event container with %d packets (allocated).\n", packetContainer->size());
+    //printf("\nGot event container with %d packets (allocated).\n", packetContainer->size());
 
     for (auto &packet : *packetContainer) {
         if (packet == nullptr) {
-            printf("Packet is empty (not present).\n");
+            //printf("Packet is empty (not present).\n");
             continue; // Skip if nothing there.
         }
 
-        printf("Packet of type %d -> %d events, %d capacity.\n", packet->getEventType(), packet->getEventNumber(), packet->getEventCapacity());
+        //printf("Packet of type %d -> %d events, %d capacity.\n", packet->getEventType(), packet->getEventNumber(), packet->getEventCapacity());
 
 
         if (packet->getEventType() == POLARITY_EVENT) {
@@ -272,12 +332,12 @@ void DVSStream::sendpacket(libcaer::devices::davis davisHandle, bool include_tim
                         message[current_event] |= polarity_event.y & 0x7FFF; // Be aware that for machine-independance it should be: htons(polarity_event.y & 0x7FFF);
                     }
                     
-                    if (current_event == packet->getEventNumber()-1){
+                    //if (current_event == packet->getEventNumber()-1){
                         //printf("Time: %d\n", evt.getTimestamp());
-                        printf("x: %d\n", polarity_event.x);
-                        printf("y: %d\n", polarity_event.y);
-                        printf("polarity: %d\n", polarity_event.polarity);
-                    }
+                    //    printf("x: %d\n", polarity_event.x);
+                    //    printf("y: %d\n", polarity_event.y);
+                    //    printf("polarity: %d\n", polarity_event.polarity);
+                    //}
 
                     if (include_timestamp){
                         current_event += 2;
@@ -316,7 +376,8 @@ void DVSStream::sendpacket(libcaer::devices::davis davisHandle, bool include_tim
 
 
 // Stops the datastream
-int DVSStream::stopdatastream(libcaer::devices::davis davisHandle){
+template <class cameratype>
+int DVSStream<cameratype>::stopdatastream(cameratype davisHandle){
     davisHandle.dataStop();
     // Close automatically done by destructor.
     printf("Shutdown successful.\n");
@@ -325,6 +386,7 @@ int DVSStream::stopdatastream(libcaer::devices::davis davisHandle){
 
 
 // Close the socket
-void DVSStream::closesocket(){
+template <class cameratype>
+void DVSStream<cameratype>::closesocket(){
     close(sockfd);
 }
