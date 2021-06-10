@@ -40,6 +40,12 @@ this assumes that you have pytorch >= 1.5.1 installed. In case of any complicati
 xargs rm -rf < setup_files.txt
 ```
 
+## List DVS cameras connected to device
+To obtain a list of all DVS cameras connected to the current device run the following code (taken from [libcaer](https://github.com/inivation/libcaer)):
+```
+gcc -std=c11 -pedantic -Wall -Wextra -O2 -o device_discovery device_discovery.c -D_DEFAULT_SOURCE=1 -lcaer
+```
+
 ## Stream polarity events via ethernet to server
 DVSStream can be used to stream DVS camera data via ethernet using UDP. The server can be specified by the port number and IP-Address. To run the script use:
 
