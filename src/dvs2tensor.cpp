@@ -230,7 +230,7 @@ int DVSDataConv::stopdatastream(){
  * Converts a vector of polarity events into sparse tensors.
  * This function is taken from norse/AEDAT (https://github.com/norse/aedat).
  * 
- * Copyright (c) 2020 Norse
+ * Copyright (c) 2020 Christian Pehle and Jens. E. Pedersen
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
