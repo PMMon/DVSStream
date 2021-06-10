@@ -44,10 +44,10 @@ xargs rm -rf < setup_files.txt
 DVSStream can be used to stream DVS camera data via ethernet using UDP. The server can be specified by the port number and IP-Address. To run the script use:
 
 ```
-src/stream2ethernet <max. packet size> <number of packets to send> (Optional: <USB id> <port> <IP Address>)
+src/stream2ethernet <max. packet size> <number of packets to send> (Optional: <camera type> <USB id> <port> <IP Address>)
 ```
 
-As you might notice, the script requires 2 command line arguments `uint32_t <max. packet size>` and `uint32_t <number of packets to send>` where the first argument specifies the maximum number of events in one packet processed by [libcaer](https://github.com/inivation/libcaer) and the latter the number of packets to be sent. In addition, there are 3 optional arguments that can be provided. The argument `int <USB id>` serves as a unique USB port identifier. Default is `USB id = 1`. The arguments `int <port>` and `*char <IP Address>` specify the port number and IP-Address of the server. Defaults are `port = 3333` and `IP Address = NULL`. An IP-Address of `NULL` represents the address of the host computer.
+As you might notice, the script requires 2 command line arguments `uint32_t <max. packet size>` and `uint32_t <number of packets to send>` where the first argument specifies the maximum number of events in one packet processed by [libcaer](https://github.com/inivation/libcaer) and the latter the number of packets to be sent. In addition, there are 4 optional arguments that can be provided. The argument `*char <camera type>` specifies the type of the camera that is about to be used. Default is `camera type = davis` that can be used for the *Davis 346x260*. To use the *DVXplorer 640x480* specify `camera type = dvx`. The argument  `int <USB id>` serves as a unique USB port identifier. Default is `USB id = 1`. The arguments `int <port>` and `*char <IP Address>` specify the port number and IP-Address of the server. Defaults are `port = 3333` and `IP Address = NULL`. An IP-Address of `NULL` represents the address of the host computer.
 
 ## Convert polarity events to sparse tensors
 DVSStream can be used to translate polarity events from a DVS camera into sparse tensor format. To do so, run the script:
