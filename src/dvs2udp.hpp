@@ -36,8 +36,8 @@ class DVSStream{
 
         static void globalShutdownSignalHandler(int signal);
         static void usbShutdownHandler(void *ptr);
-        libcaer::devices::davis connect2davis(int ID);
-        libcaer::devices::dvXplorer connect2dvx(int ID);
+        libcaer::devices::davis connect2davis(int ID, int devAddress);
+        libcaer::devices::dvXplorer connect2dvx(int ID, int devAddress);
         cameratype startdatastream(cameratype davisHandle);
         void sendpacket(cameratype davisHandle, bool include_timestamp);
         int stopdatastream(cameratype davisHandle);

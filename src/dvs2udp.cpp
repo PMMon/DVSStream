@@ -98,7 +98,7 @@ void DVSStream<cameratype>::usbShutdownHandler(void *ptr) {
 
 // Open a DAVIS given a USB ID, and don't care about USB bus or SN restrictions.
 template <class cameratype>
-libcaer::devices::davis DVSStream<cameratype>::connect2davis(int ID){
+libcaer::devices::davis DVSStream<cameratype>::connect2davis(int ID, int devAddress){
 
     #if defined(_WIN32)
         if (signal(SIGTERM, &globalShutdownSignalHandler) == SIG_ERR) {
@@ -134,7 +134,7 @@ libcaer::devices::davis DVSStream<cameratype>::connect2davis(int ID){
         }
     #endif
 
-    libcaer::devices::davis davisHandle = libcaer::devices::davis(ID);
+    libcaer::devices::davis davisHandle = libcaer::devices::davis(ID, ID, devAddress, "");
 
     // Let's take a look at the information we have on the device.
     struct caer_davis_info davis_info = davisHandle.infoGet();
@@ -183,7 +183,7 @@ libcaer::devices::davis DVSStream<cameratype>::connect2davis(int ID){
 }
 
 template <class cameratype>
-libcaer::devices::dvXplorer DVSStream<cameratype>::connect2dvx(int ID){
+libcaer::devices::dvXplorer DVSStream<cameratype>::connect2dvx(int ID, int devAddress){
     // Install signal handler for global shutdown.
     #if defined(_WIN32)
         if (signal(SIGTERM, &globalShutdownSignalHandler) == SIG_ERR) {
@@ -220,7 +220,7 @@ libcaer::devices::dvXplorer DVSStream<cameratype>::connect2dvx(int ID){
     #endif
 
 	// Open a DVS, give it a device ID of 1, and don't care about USB bus or SN restrictions.
-	auto handle = libcaer::devices::dvXplorer(ID);
+	auto handle = libcaer::devices::dvXplorer(ID, ID, devAddress, "");
 
 	// Let's take a look at the information we have on the device.
 	auto info = handle.infoGet();
@@ -286,15 +286,15 @@ void DVSStream<cameratype>::sendpacket(cameratype davisHandle, bool include_time
     } while (packetContainer == nullptr);
 
 
-    //printf("\nGot event container with %d packets (allocated).\n", packetContainer->size());
+    printf("\nGot event container with %d packets (allocated).\n", packetContainer->size());
 
     for (auto &packet : *packetContainer) {
         if (packet == nullptr) {
-            //printf("Packet is empty (not present).\n");
+            printf("Packet is empty (not present).\n");
             continue; // Skip if nothing there.
         }
 
-        //printf("Packet of type %d -> %d events, %d capacity.\n", packet->getEventType(), packet->getEventNumber(), packet->getEventCapacity());
+        printf("Packet of type %d -> %d events, %d capacity.\n", packet->getEventType(), packet->getEventNumber(), packet->getEventCapacity());
 
 
         if (packet->getEventType() == POLARITY_EVENT) {
@@ -332,12 +332,12 @@ void DVSStream<cameratype>::sendpacket(cameratype davisHandle, bool include_time
                         message[current_event] |= polarity_event.y & 0x7FFF; // Be aware that for machine-independance it should be: htons(polarity_event.y & 0x7FFF);
                     }
                     
-                    //if (current_event == packet->getEventNumber()-1){
+                    if (current_event == packet->getEventNumber()-1){
                         //printf("Time: %d\n", evt.getTimestamp());
-                    //    printf("x: %d\n", polarity_event.x);
-                    //    printf("y: %d\n", polarity_event.y);
-                    //    printf("polarity: %d\n", polarity_event.polarity);
-                    //}
+                        printf("x: %d\n", polarity_event.x);
+                        printf("y: %d\n", polarity_event.y);
+                        printf("polarity: %d\n", polarity_event.polarity);
+                    }
 
                     if (include_timestamp){
                         current_event += 2;

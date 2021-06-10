@@ -16,16 +16,17 @@ int main(int argc, char *argv[]) {
 	uint32_t interval;
 	uint32_t buffer_size = 512;
 	const char* port = "3333";	// Port number
-	const char* IPAdress = NULL;	// IP Adress - if NULL, use own IP.
+	const char* IPAdress = NULL;	// IP Adress - if NULL, use own IP. Hugin: 172.16.222.30; SPIF: 172.16.223.2
 	const char* camera = "davis";	// Specify camera type
 
 	int nr_packets = 0;
 	uint32_t max_packets;
 	int id = 1;
+	int devAddress = 0;
 	int exitcode, sockfd;
 
     if (argc < 3) {
-        fprintf(stderr,"usage: ./stream2ethernet <max_packet_size> <nr_packets_2_send> (Optional: <camera type> <usb id> <port> <IP Adress>)\n");
+        fprintf(stderr,"usage: ./stream2ethernet <max_packet_size> <nr_packets_2_send> (Optional: <camera type> <usb id> <device Address> <port> <IP Adress>)\n");
         exit(1);
     }
 	else if (argc == 4)
@@ -41,22 +42,31 @@ int main(int argc, char *argv[]) {
 	{
 		camera = argv[3];
 		id = stoi(argv[4]);
-		port = argv[5];
+		devAddress = stoi(argv[5]);
 	}
 	else if (argc == 7)
 	{
 		camera = argv[3];
 		id = stoi(argv[4]);
-		port = argv[5];
-		IPAdress = argv[6];
+		devAddress = stoi(argv[5]);
+		port = argv[6];
 	}
 	else if (argc == 8)
 	{
 		camera = argv[3];
 		id = stoi(argv[4]);
-		port = argv[5];
-		IPAdress = argv[6];
-		filename = argv[7];
+		devAddress = stoi(argv[5]);
+		port = argv[6];
+		IPAdress = argv[7];
+	}
+	else if (argc == 9)
+	{
+		camera = argv[3];
+		id = stoi(argv[4]);
+		devAddress = stoi(argv[5]);
+		port = argv[6];
+		IPAdress = argv[7];
+		filename = argv[8];
 	}
 
 	interval = strtol(argv[1], NULL, 0);
@@ -65,7 +75,7 @@ int main(int argc, char *argv[]) {
 	if (strcmp (camera, "davis") == 0){		
 		DVSStream<libcaer::devices::davis> dvsstream(interval, buffer_size, port, IPAdress, NULL, filename); 
 
-		auto davisHandler = dvsstream.connect2davis(id);
+		auto davisHandler = dvsstream.connect2davis(id, devAddress);
 		davisHandler = dvsstream.startdatastream(davisHandler);
 
 		while (nr_packets < max_packets) {
@@ -83,7 +93,7 @@ int main(int argc, char *argv[]) {
 	{
 		DVSStream<libcaer::devices::dvXplorer> dvsstream(interval, buffer_size, port, IPAdress, NULL, filename); 
 
-		auto davisHandler = dvsstream.connect2dvx(id);
+		auto davisHandler = dvsstream.connect2dvx(id, devAddress);
 		davisHandler = dvsstream.startdatastream(davisHandler);
 
 		while (nr_packets < max_packets) {
