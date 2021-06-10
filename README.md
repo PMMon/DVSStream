@@ -76,9 +76,6 @@ python export2python/DVSGenerator.py --packet_size  <max. packet time in μs> --
 
 where the arguments match the above descriped arguments. 
 
+## Acknowledgments
 
-
-
-
-
-
+This library is based on [AEDAT](https://github.com/norse/aedat) by Christian Pehle and Jens E. Pedersen.
