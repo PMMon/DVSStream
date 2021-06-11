@@ -79,9 +79,3 @@ where the arguments match the above descriped arguments.
 
 - This library is based on [libcaer](https://github.com/inivation/libcaer) by iniVation AG.
 - The conversion of polarity events to sparse tensors is based on the [AEDAT](https://github.com/norse/aedat) library by Christian Pehle and Jens. E. Pedersen.
-
-
-
-
-
-
