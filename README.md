@@ -64,7 +64,6 @@ src/stream2tensor <max. packet time in μs> <buffer size> <number of packets to 
 
 where `<max. packet time in μs>` is the maximum time length of a packet processed by [libcaer](https://github.com/inivation/libcaer) in mikroseconds. `<buffer size>` spcifies the size of the internal ring buffer that stores DVS packets if they are not processed fast enough. Note that this number as to be a multiple of 2 (e.g. 512). The last argument `<number of packets to process>` specifies the number of packets to be translated to sparse tensors.
 
-The conversion of polarity events to sparse tensors is based on the [AEDAT](https://github.com/norse/aedat) library by Christian Pehle and Jens. E. Pedersen. 
 
 ### Usage in python
 It is possible to create a python [generator](https://wiki.python.org/moin/Generators) that allows to iteratively obtain polarity events in sparse tensor format from the DVS camera. An example of such a generator can be in [DVSGenerator.py](export2python/DVSGenerator.py). 
@@ -76,6 +75,10 @@ python export2python/DVSGenerator.py --packet_size  <max. packet time in μs> --
 
 where the arguments match the above descriped arguments. 
 
+## Acknowledgments
+
+- This library is based on [libcaer](https://github.com/inivation/libcaer) by iniVation AG.
+- The conversion of polarity events to sparse tensors is based on the [AEDAT](https://github.com/norse/aedat) library by Christian Pehle and Jens. E. Pedersen.
 
 
 
