@@ -10,7 +10,7 @@ DVSStream allows for processing (real-time) DVS data from an event-based DVS cam
 
 ## Setup
 
-DVSStream requires [libcaer](https://github.com/inivation/libcaer), [LZ4](https://lz4.github.io/lz4/), and [libtorch](https://pytorch.org/cppdocs/installing.html).
+DVSStream requires [libcaer](https://github.com/inivation/libcaer) and [libtorch](https://pytorch.org/cppdocs/installing.html).
 
 To build the binaries of this repository, run the following code:
 ```
