@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <type_traits>
 
+#include <chrono>
+int time_interval = 15000000; 
 
 int main(int argc, char *argv[]) {
   	//pid_t pid = getpid();
@@ -78,34 +80,47 @@ int main(int argc, char *argv[]) {
 		auto davisHandler = dvsstream.connect2davis(id, devAddress);
 		davisHandler = dvsstream.startdatastream(davisHandler);
 
-		while (nr_packets < max_packets) {
+		// Count number of polarity events processed 
+        auto start = std::chrono::steady_clock::now();
+        auto end = std::chrono::steady_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+		while (duration.count() < time_interval) {
 			dvsstream.sendpacket(davisHandler, false);
-			nr_packets += 1;
+			//nr_packets += 1;
+			duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
 		}
 
 		exitcode = dvsstream.stopdatastream(davisHandler);
 
 		dvsstream.closesocket();
 
-		printf("Total number of events sent: %ld\n", dvsstream.events_sent); 
+		std::cout << "Total number of events sent: " << dvsstream.events_sent << std::endl;
+		std::cout << "Duration: " << duration.count() << std::endl;  
 	}
-	else if (strcmp (camera, "dvx") == 0)
-	{
+	else if (strcmp (camera, "dvx") == 0){
 		DVSStream<libcaer::devices::dvXplorer> dvsstream(interval, buffer_size, port, IPAdress, NULL, filename); 
 
 		auto davisHandler = dvsstream.connect2dvx(id, devAddress);
 		davisHandler = dvsstream.startdatastream(davisHandler);
 
-		while (nr_packets < max_packets) {
+		// Count number of polarity events processed 
+        auto start = std::chrono::steady_clock::now();
+        auto end = std::chrono::steady_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+		while (duration.count() < time_interval) {
 			dvsstream.sendpacket(davisHandler, false);
-			nr_packets += 1;
+			//nr_packets += 1;
+			duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
 		}
 
 		exitcode = dvsstream.stopdatastream(davisHandler);
 
 		dvsstream.closesocket();
 
-		printf("Total number of events sent: %ld\n", dvsstream.events_sent); 
+		std::cout << "Total number of events sent: " << dvsstream.events_sent << std::endl;
+		std::cout << "Duration: " << duration.count() << std::endl; 
 	}
 	else
 	{
