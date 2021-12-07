@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
 	uint32_t interval;
 	uint32_t buffer_size = 512;
 	const char* port = "3333";	// Port number
-	const char* IPAdress = NULL;	// IP Adress - if NULL, use own IP.
+	const char* IPAdress = NULL;	// IP Adress - if NULL, use own IP. Hugin: 172.16.222.30; SPIF: 172.16.223.2
 	const char* camera = "davis";	// Specify camera type
 
 	int nr_packets = 0;

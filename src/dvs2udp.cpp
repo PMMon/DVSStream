@@ -249,7 +249,7 @@ cameratype DVSStream<cameratype>::startdatastream(cameratype davisHandle){
     // Configs about buffer
     davisHandle.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BUFFER_SIZE, buffer_size);
 
-    uint32_t BFSize   = davisHandle.configGet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BUFFER_SIZE);
+    uint32_t BFSize = davisHandle.configGet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BUFFER_SIZE);
     printf("Buffer size: %d\n", BFSize);
 
     // Start data stream
@@ -286,10 +286,15 @@ void DVSStream<cameratype>::sendpacket(cameratype davisHandle, bool include_time
     } while (packetContainer == nullptr);
 
 
+    //printf("\nGot event container with %d packets (allocated).\n", packetContainer->size());
+
     for (auto &packet : *packetContainer) {
         if (packet == nullptr) {
+            //printf("Packet is empty (not present).\n");
             continue; // Skip if nothing there.
         }
+
+        //printf("Packet of type %d -> %d events, %d capacity.\n", packet->getEventType(), packet->getEventNumber(), packet->getEventCapacity());
 
 
         if (packet->getEventType() == POLARITY_EVENT) {
