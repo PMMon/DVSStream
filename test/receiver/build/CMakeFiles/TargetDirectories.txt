@@ -1,0 +1,4 @@
+/home/pmmon/Documents/SNN/projects/LearnNetworking/Chapter5/receiver/build/CMakeFiles/rebuild_cache.dir
+/home/pmmon/Documents/SNN/projects/LearnNetworking/Chapter5/receiver/build/CMakeFiles/edit_cache.dir
+/home/pmmon/Documents/SNN/projects/LearnNetworking/Chapter5/receiver/build/CMakeFiles/listening.dir
+/home/pmmon/Documents/SNN/projects/LearnNetworking/Chapter5/receiver/build/CMakeFiles/client.dir
